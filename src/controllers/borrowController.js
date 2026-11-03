@@ -129,3 +129,88 @@ export const borrowBook = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * GET /borrows
+ * Protected (verifyJWT). Returns own borrows only (filtered by req.user.email).
+ */
+export const getMyBorrows = async (req, res, next) => {
+  try {
+    const col = await getBorrowsCol();
+
+    const borrows = await col
+      .find({ userEmail: req.user.email, returned: { $ne: true } })
+      .sort({ borrowDate: -1 })
+      .toArray();
+
+    res.status(200).json({
+      success: true,
+      count: borrows.length,
+      data: borrows,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * DELETE /borrows/:id
+ * Protected (verifyJWT). Borrower only (403 otherwise).
+ * Marks borrow as returned and increments availableCopies +1.
+ */
+export const returnBook = async (req, res, next) => {
+  const db = await connectDB();
+  const borrowsCol = db.collection("borrows");
+  const booksCol = db.collection("books");
+
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid borrow ID",
+      });
+    }
+
+    const borrow = await borrowsCol.findOne({ _id: new ObjectId(id) });
+
+    if (!borrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Borrow record not found",
+      });
+    }
+
+    // Borrower check
+    if (borrow.userEmail !== req.user.email) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You did not borrow this book",
+      });
+    }
+
+    if (borrow.returned) {
+      return res.status(400).json({
+        success: false,
+        message: "This book has already been returned",
+      });
+    }
+
+    // Delete the borrow record
+    await borrowsCol.deleteOne({ _id: new ObjectId(id) });
+
+    // Increment availableCopies +1
+    await booksCol.updateOne(
+      { _id: borrow.bookId },
+      { $inc: { availableCopies: 1 } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Book returned successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
