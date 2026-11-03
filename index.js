@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./src/config/db.js";
+import bookRoutes from "./src/routes/bookRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,9 @@ app.use(express.json());
 connectDB().catch((err) => {
   console.error("Failed to connect to MongoDB at startup:", err.message);
 });
+
+// Routes
+app.use("/books", bookRoutes);
 
 // Health check route
 app.get("/", (req, res) => {
