@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./src/config/db.js";
 import bookRoutes from "./src/routes/bookRoutes.js";
+import borrowRoutes from "./src/routes/borrowRoutes.js";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ connectDB().catch((err) => {
 
 // Routes
 app.use("/books", bookRoutes);
+app.use("/borrows", borrowRoutes);
 
 // Health check route
 app.get("/", (req, res) => {
