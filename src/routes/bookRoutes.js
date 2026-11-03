@@ -4,6 +4,8 @@ import {
   getAllBooks,
   getBookById,
   createBook,
+  updateBook,
+  deleteBook,
 } from "../controllers/bookController.js";
 
 const router = Router();
@@ -16,5 +18,11 @@ router.get("/:id", verifyJWT, getBookById);
 
 // POST /books  - protected
 router.post("/", verifyJWT, createBook);
+
+// PATCH /books/:id  - protected, owner only
+router.patch("/:id", verifyJWT, updateBook);
+
+// DELETE /books/:id  - protected, owner only
+router.delete("/:id", verifyJWT, deleteBook);
 
 export default router;
