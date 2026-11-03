@@ -94,3 +94,55 @@ export const getBookById = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * POST /books
+ * Protected (verifyJWT). addedBy from JWT, not body. availableCopies = totalCopies.
+ */
+export const createBook = async (req, res, next) => {
+  try {
+    const { title, author, category, image, description, totalCopies } = req.body;
+
+    // Validate required fields
+    if (!title || !author || !category || !totalCopies) {
+      return res.status(400).json({
+        success: false,
+        message: "title, author, category, and totalCopies are required",
+      });
+    }
+
+    const parsedTotal = parseInt(totalCopies, 10);
+    if (isNaN(parsedTotal) || parsedTotal < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "totalCopies must be a positive integer",
+      });
+    }
+
+    const newBook = {
+      title: title.trim(),
+      author: author.trim(),
+      category: category.trim(),
+      image: image?.trim() || "",
+      description: description?.trim() || "",
+      totalCopies: parsedTotal,
+      availableCopies: parsedTotal,   // availableCopies = totalCopies on creation
+      addedBy: {
+        name: req.user.name,          // from JWT, not body
+        email: req.user.email,
+      },
+      createdAt: new Date(),
+    };
+
+    const col = await getCollection();
+    const result = await col.insertOne(newBook);
+
+    res.status(201).json({
+      success: true,
+      message: "Book added successfully",
+      data: { ...newBook, _id: result.insertedId },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
