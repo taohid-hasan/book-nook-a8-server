@@ -10,14 +10,23 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// CORS configuration - only for CLIENT_URL with Authorization header
+// CORS configuration - CLIENT_URL plus the local client origins
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+]
+  .filter(Boolean)
+  .map((origin) => origin.replace(/\/+$/, ""));
+
 const corsOptions = {
-  origin: process.env.CLIENT_URL,
-  credentials: true,
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// Middlewares
+// Middlewares - CORS must run before body parsing and every route so that
+// preflight OPTIONS requests are answered with the right headers.
 app.use(cors(corsOptions));
 app.use(express.json());
 

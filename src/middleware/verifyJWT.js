@@ -57,9 +57,15 @@ export const verifyJWT = async (req, res, next) => {
 
     next();
   } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error("JWT verification failed:", reason);
+
     return res.status(401).json({
       success: false,
-      message: "Unauthorized: Invalid or expired token",
+      message:
+        process.env.NODE_ENV === "development"
+          ? reason
+          : "Unauthorized: Invalid or expired token",
     });
   }
 };
@@ -91,6 +97,8 @@ export const optionalJWT = async (req, res, next) => {
       id: payload.id || payload.sub,
     };
   } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error("JWT verification failed (optional):", reason);
     req.user = null;
   }
 
