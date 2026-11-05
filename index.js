@@ -11,23 +11,14 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // CORS configuration - CLIENT_URL plus the local client origins
-const allowedOrigins = [
-  process.env.CLIENT_URL,
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-]
-  .filter(Boolean)
-  .map((origin) => origin.replace(/\/+$/, ""));
 
-const corsOptions = {
-  origin: allowedOrigins,
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
 
 // Middlewares - CORS must run before body parsing and every route so that
 // preflight OPTIONS requests are answered with the right headers.
-app.use(cors(corsOptions));
+app.use(cors({
+    origin: `${process.env.CLIENT_URL}`,
+    credentials: true,
+  }),);
 app.use(express.json());
 
 // Initialize MongoDB connection
