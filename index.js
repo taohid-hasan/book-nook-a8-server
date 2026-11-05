@@ -10,11 +10,7 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// CORS configuration - CLIENT_URL plus the local client origins
 
-
-// Middlewares - CORS must run before body parsing and every route so that
-// preflight OPTIONS requests are answered with the right headers.
 app.use(cors({
     origin: `${process.env.CLIENT_URL}`,
     credentials: true,
