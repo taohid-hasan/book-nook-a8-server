@@ -31,7 +31,7 @@ export async function connectDB() {
       },
     });
 
-    await cachedClient.connect();
+    // await cachedClient.connect();
     console.log("Successfully connected to MongoDB");
   }
 
